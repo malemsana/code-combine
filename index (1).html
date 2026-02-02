@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://i.ibb.co/VYW1hDxn/ccbine.png">
+
+    <title>codeCombine</title>
+    <style>
+        :root {
+            --background-color: #0a0a0a;
+            --text-color: #e0e0e0;
+            --button-bg: #222222;
+            --button-hover-bg: #333333;
+            --button-border: #444444;
+            --preview-bg: #1a1a1a;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'Consolas', 'Menlo', 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .logo svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .instructions {
+            font-size: 1rem;
+            margin-bottom: 30px;
+            color: #a0a0a0;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: 1px solid var(--button-border);
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            font-family: var(--font-main);
+        }
+
+        .btn:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .preview-area {
+            width: 100%;
+            height: 500px;
+            background-color: var(--preview-bg);
+            color: var(--text-color);
+            border: 1px solid var(--button-border);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            resize: vertical;
+            box-sizing: border-box;
+            white-space: pre; /* Essential for tree formatting */
+            overflow-x: auto;
+        }
+        
+        /* Utility to hide inputs */
+        .hidden-input {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M63 13H28C24.6863 13 22 15.6863 22 19V81C22 84.3137 24.6863 87 28 87H72C75.3137 87 78 84.3137 78 81V33L63 13Z" stroke="#e0e0e0" stroke-width="5" stroke-linejoin="round"/>
+                    <path d="M61 13V35H78" stroke="#e0e0e0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1>codeCombine</h1>
+        </div>
+        
+        <p class="instructions">Upload individual files or an entire folder to generate an AI-ready text block with structure.</p>
+        
+        <div class="controls">
+            <!-- Standard file input -->
+            <input type="file" id="file-input" class="hidden-input" multiple>
+            <!-- Directory input (webkitdirectory allows folder selection) -->
+            <input type="file" id="folder-input" class="hidden-input" webkitdirectory directory multiple>
+            
+            <button class="btn" id="upload-files-btn">Select Files</button>
+            <button class="btn" id="upload-folder-btn">Select Folder</button>
+            
+            <button class="btn" id="copy-btn" disabled>Copy to Clipboard</button>
+            <button class="btn" id="save-btn" disabled>Save as .txt</button>
+        </div>
+
+        <textarea id="preview" class="preview-area" readonly placeholder="Your combined code will appear here..."></textarea>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('file-input');
+            const folderInput = document.getElementById('folder-input');
+            
+            const uploadFilesBtn = document.getElementById('upload-files-btn');
+            const uploadFolderBtn = document.getElementById('upload-folder-btn');
+            
+            const copyBtn = document.getElementById('copy-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const previewArea = document.getElementById('preview');
+
+            let combinedText = "";
+
+            // --- Event Listeners ---
+            
+            uploadFilesBtn.addEventListener('click', () => fileInput.click());
+            uploadFolderBtn.addEventListener('click', () => folderInput.click());
+
+            // Handle individual files
+            fileInput.addEventListener('change', (event) => {
+                const files = Array.from(event.target.files);
+                if (files.length > 0) processFiles(files);
+                // Reset to allow re-selection
+                fileInput.value = ''; 
+            });
+
+            // Handle folder structure
+            folderInput.addEventListener('change', (event) => {
+                const files = Array.from(event.target.files);
+                if (files.length > 0) processFiles(files);
+                folderInput.value = '';
+            });
+
+            copyBtn.addEventListener('click', () => {
+                if (combinedText) {
+                    navigator.clipboard.writeText(combinedText).then(() => {
+                        const originalText = copyBtn.textContent;
+                        copyBtn.textContent = "Copied!";
+                        setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+                    }).catch(err => {
+                        console.error("Failed to copy: ", err);
+                        alert("Failed to copy to clipboard.");
+                    });
+                }
+            });
+            
+            saveBtn.addEventListener('click', () => {
+                if (combinedText) {
+                    const blob = new Blob([combinedText], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'combined_code.txt';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            });
+            
+
+            // --- Core Functions ---
+
+            const ALLOWED_EXTENSIONS = [
+                'txt', 'md', 'py', 'js', 'jsx', 'html', 'css', 'scss', 'json', 'xml', 'java', 'c', 
+                'cpp', 'cs', 'go', 'php', 'rb', 'rs', 'ts', 'tsx', 'kt', 'sh', 'yaml', 'toml', 'sql', 'vue', 'svelte'
+            ];
+
+            async function processFiles(files) {
+                const validFiles = [];
+                const rejectedFiles = [];
+
+                // 1. Filter Files
+                for (const file of files) {
+                    // Handle dotfiles or hidden files
+                    if (file.name.startsWith('.')) continue;
+
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    // Basic check to ensure it's likely a text file based on extension
+                    if (ALLOWED_EXTENSIONS.includes(extension) || file.type.startsWith('text/') || file.type === 'application/json') {
+                        validFiles.push(file);
+                    } else {
+                        rejectedFiles.push(file.name);
+                    }
+                }
+                
+                if (rejectedFiles.length > 0) {
+                    // Optional: Log skipped files to console instead of alerting to avoid spam on huge folders
+                    console.log(`Skipped ${rejectedFiles.length} non-text files.`);
+                }
+                
+                if (validFiles.length === 0) {
+                    alert("No supported text files found.");
+                    return;
+                }
+
+                // 2. Generate Tree Structure
+                const treeView = generateDirectoryTree(validFiles);
+
+                // 3. Read File Contents
+                let codeBlocks = [];
+                const fileReadPromises = validFiles.map(readFile);
+
+                try {
+                    const fileContents = await Promise.all(fileReadPromises);
+                    
+                    // Sort files alphabetically by path for cleaner output
+                    fileContents.sort((a, b) => a.path.localeCompare(b.path));
+
+                    for (const fileData of fileContents) {
+                        const { path, content } = fileData;
+                        const extension = path.split('.').pop().toLowerCase();
+                        const lang = getLanguageIdentifier(extension);
+
+                        // Use full relative path in the code block header
+                        const formattedBlock = `${path}\n\`\`\`${lang}\n${content}\n\`\`\``;
+                        codeBlocks.push(formattedBlock);
+                    }
+                    
+                    // 4. Combine Final Output
+                    combinedText = `${treeView}\nHere is the code:\n\n\n${codeBlocks.join("\n\n")}`;
+                    previewArea.value = combinedText;
+
+                    copyBtn.disabled = false;
+                    saveBtn.disabled = false;
+
+                } catch (error) {
+                    console.error("Error processing files:", error);
+                    alert("An error occurred while reading the files.");
+                }
+            }
+
+            function readFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    // Use webkitRelativePath if available (folder upload), otherwise fallback to name
+                    const filePath = file.webkitRelativePath || file.name;
+                    
+                    reader.onload = () => resolve({ path: filePath, content: reader.result });
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsText(file);
+                });
+            }
+
+            // --- Tree Generation Logic ---
+            function generateDirectoryTree(files) {
+                const root = {};
+
+                // Step A: Build the hierarchical object
+                files.forEach(file => {
+                    const path = file.webkitRelativePath || file.name;
+                    const parts = path.split('/');
+                    
+                    let current = root;
+                    parts.forEach((part, index) => {
+                        if (!current[part]) {
+                            // If it's the last part, it's a file (null marks it as file)
+                            // Otherwise it's a folder (new object)
+                            current[part] = (index === parts.length - 1) ? null : {};
+                        }
+                        current = current[part];
+                    });
+                });
+
+                // Step B: Recursive print function
+                function renderNode(node, indent = "") {
+                    let output = "";
+                    const entries = Object.keys(node).sort((a, b) => {
+                        // Sort: folders first, then files, or alphabetical
+                        const aIsFile = node[a] === null;
+                        const bIsFile = node[b] === null;
+                        if (aIsFile && !bIsFile) return 1;
+                        if (!aIsFile && bIsFile) return -1;
+                        return a.localeCompare(b);
+                    });
+
+                    entries.forEach(key => {
+                        if (node[key] === null) {
+                            // It's a file
+                            output += `${indent}--${key}\n`;
+                        } else {
+                            // It's a folder
+                            output += `${indent}${key}/\n`;
+                            output += renderNode(node[key], indent + "   ");
+                        }
+                    });
+                    return output;
+                }
+
+                // If handling single files without folder context, root might just contain files
+                return renderNode(root);
+            }
+
+            function getLanguageIdentifier(extension) {
+                const langMap = {
+                    'py': 'python', 'js': 'javascript', 'jsx': 'javascript', 
+                    'html': 'html', 'css': 'css', 'scss': 'scss',
+                    'java': 'java', 'c': 'c', 'cpp': 'cpp', 'cs': 'csharp', 'go': 'go',
+                    'php': 'php', 'rb': 'ruby', 'rs': 'rust', 'ts': 'typescript', 'tsx': 'typescript',
+                    'kt': 'kotlin', 'md': 'markdown', 'json': 'json', 'xml': 'xml', 
+                    'sh': 'bash', 'sql': 'sql', 'yaml': 'yaml', 'vue': 'html'
+                };
+                return langMap[extension] || '';
+            }
+        });
+    </script>
+
+</body>
+</html>
