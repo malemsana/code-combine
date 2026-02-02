@@ -1,5 +1,6 @@
 # codeCombine
 
+![ui](ui.png)
 codeCombine is a lightweight web tool that combines multiple files or folders into a single, well-structured text block that is ready to paste into AI tools.
 
 It preserves file structure and wraps each file in proper code blocks for clarity.
