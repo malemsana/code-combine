@@ -1,13 +1,3 @@
-Okay, this actually upgrades the project from
-“basic combiner” → **thoughtful AI-friendly formatter**.
-
-The file tree + fenced blocks is exactly what makes this useful.
-
-Here’s an updated README that reflects the *real behavior* of your tool 👇
-(Simple, clean, honest, not overhyped.)
-
----
-
 # codeCombine
 
 codeCombine is a lightweight web tool that combines multiple files or folders into a single, well-structured text block that is ready to paste into AI tools.
