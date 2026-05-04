@@ -27,11 +27,18 @@ codeCombine produces two sections:
 ### 1) File Tree
 
 ```
-codepaste/
-   another folder/
-      --something.py
-   --index.html
-   --paste.py
+└── My Project/
+    ├── backend/
+    │   ├── app.js
+    │   ├── database.sql
+    │   └── utility.js
+    ├── css/
+    │   ├── index.js
+    │   └── tailwind.css
+    ├── index.html
+    └── script/
+        ├── helper.js
+        └── index.js
 ```
 
 ### 2) Combined Code
