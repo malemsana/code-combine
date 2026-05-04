@@ -69,7 +69,6 @@ codepaste/paste.py
 print("hello")
 ```
 
-```
 
 This structure makes it easy for AI models to understand both layout and content.
 
