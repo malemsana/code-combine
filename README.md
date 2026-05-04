@@ -5,6 +5,7 @@ codeCombine is a lightweight web tool that combines multiple files or folders in
 
 It preserves file structure and wraps each file in proper code blocks for clarity.
 
+## You can access it ![right now](https://malemsana.github.io/code-combine/)
 ---
 
 ## Features
